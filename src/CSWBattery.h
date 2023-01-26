@@ -18,11 +18,11 @@ class CSWBattery {
     CSWBattery(int battery_pin=-100, int precision=-100);
     void setBatteryPin(int battery_pin);
     int getBatteryPin();
-    float getBatteryVoltage(bool no_update=false, bool get_raw=false, int override_precision=-1);
+    float getBatteryVoltage(bool no_update=false, bool get_raw=false, int override_precision=-1, bool check_thoroughly=false);
     int getVoltagePrecision();
     void setVoltagePrecision(int precision=-1);
-    int getBatteryVoltageSection(bool no_update=false);
-    int getBatteryVoltagePercentage(bool no_update=false);
+    int getBatteryVoltageSection(bool no_update=false, bool check_thoroughly=false);
+    int getBatteryVoltagePercentage(bool no_update=false, bool check_thoroughly=false);
     bool checkIfWeAreCharging();
     bool checkIfEmpty();
     int getSectionsNum();
@@ -49,6 +49,8 @@ class CSWBattery {
     const float _fully_uncharged_voltage=3.7;
     const float _charging_threshold=4.3;
     const float defaultBatteryCf=1.1;
+    const int _battery_check_times = 5;
+    const int _battery_check_delay_ms = 20;
     float _last_battery_voltage=-1;
     int _last_battery_voltage_section=-1;
     int _last_battery_voltage_percentage=-1;

@@ -49,18 +49,52 @@ float CSWBattery::getBatterryCoefficient() {
 }
 
 bool CSWBattery::checkBatteryVoltageChanged(int check_type) {
+  bool res = true;
+  int _lbvi;
+  int _bvi;
+  float _lbv;
+  float _bv;
   switch(check_type) {
     case 1:
       //sections
-      return (_last_battery_voltage_section!=this->getBatteryVoltageSection());
+      _lbvi = _last_battery_voltage_section;
+      _bvi = this->getBatteryVoltageSection();
+      if (_lbvi!=_bvi) {
+        for(int i=0;i<_battery_check_times;i++) {
+          _bvi = this->getBatteryVoltageSection();
+          if (_lbvi == _bvi) res = false; //fluke
+          delay(_battery_check_delay_ms);
+        }
+        return res;
+      } else return false;
+      //return (_last_battery_voltage_section!=this->getBatteryVoltageSection());
     break;
     case 2:
       //percentage
-      return (_last_battery_voltage_percentage!=this->getBatteryVoltagePercentage());
+      _lbvi = _last_battery_voltage_percentage;
+      _bvi = this->getBatteryVoltagePercentage();
+      if (_lbvi!=_bvi) {
+        for(int i=0;i<_battery_check_times;i++) {
+          _bvi = this->getBatteryVoltagePercentage();
+          if (_lbvi == _bvi) res = false; //fluke
+          delay(_battery_check_delay_ms);
+        }
+        return res;
+      } else return false;
+      //return (_last_battery_voltage_percentage!=this->getBatteryVoltagePercentage());
     case 3:
       //voltage
     default:
-      return (_last_battery_voltage!=this->getBatteryVoltage());
+      _lbv = _last_battery_voltage;
+      _bv = this->getBatteryVoltage();
+      if (_lbv!=_bv) {
+        for(int i=0;i<_battery_check_times;i++) {
+          _bv = this->getBatteryVoltage();
+          if (_lbv == _bv) res = false; //fluke
+          delay(_battery_check_delay_ms);
+        }
+        return res;
+      } else return false;
   }
   return __null;
 }
@@ -79,35 +113,54 @@ void CSWBattery::setLastBatteryVoltage(float v) {
   _last_battery_voltage = v;
 }
 
-float CSWBattery::getBatteryVoltage(bool no_update, bool get_raw, int override_precision) {
+float CSWBattery::getBatteryVoltage(bool no_update, bool get_raw, int override_precision, bool check_thoroughly) {
   int __voltage_precision = (override_precision != -1) ? override_precision : _voltage_precision;
-  float __last_battery_voltage = (__voltage_precision >= 2) ?
-    ceil(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf))* pow(10.0,__voltage_precision)) / pow(10.0,__voltage_precision)
-    :
-    (
-      (__voltage_precision == 1) ?
-      ceil(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf))* 10.0) / 10.0
+  float __last_battery_voltage=0;
+  if(check_thoroughly) {
+    for(int i=0;i<_battery_check_times;i++) {
+      __last_battery_voltage += (__voltage_precision >= 2) ?
+        ceil(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf))* pow(10.0,__voltage_precision)) / pow(10.0,__voltage_precision)
+        :
+        (
+          (__voltage_precision == 1) ?
+          ceil(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf))* 10.0) / 10.0
+          :
+          floor(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf)))
+        );
+        delay(_battery_check_delay_ms);
+    }
+    __last_battery_voltage = __last_battery_voltage/_battery_check_times;
+  } else {
+    __last_battery_voltage = (__voltage_precision >= 2) ?
+      ceil(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf))* pow(10.0,__voltage_precision)) / pow(10.0,__voltage_precision)
       :
-      floor(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf)))
-    );
+      (
+        (__voltage_precision == 1) ?
+        ceil(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf))* 10.0) / 10.0
+        :
+        floor(((float)(analogRead(_battery_pin)) / 4095*2*3.3*(get_raw ? 1 : batteryCf)))
+      );
+  }
   if(!no_update) _last_battery_voltage = __last_battery_voltage;
   return __last_battery_voltage;
 }
 
-int CSWBattery::getBatteryVoltageSection(bool no_update) {
-  float v = this->getBatteryVoltage();
+int CSWBattery::getBatteryVoltageSection(bool no_update, bool check_thoroughly) {
+  float v = this->getBatteryVoltage(false, false, -1, check_thoroughly);
   int voltage_section = -1;
-  if (v >= _charging_threshold) voltage_section = -1; else
+  if (v >= _charging_threshold) voltage_section = -1; else {
     voltage_section = ceil((min(v,_fully_charged_voltage)-_fully_uncharged_voltage) * _sections_num/(_fully_charged_voltage-_fully_uncharged_voltage));
+  }
   if(!no_update) _last_battery_voltage_section = voltage_section;
   return voltage_section;
 }
 
-int CSWBattery::getBatteryVoltagePercentage(bool no_update) {
-  float v = this->getBatteryVoltage();
+int CSWBattery::getBatteryVoltagePercentage(bool no_update, bool check_thoroughly) {
+  float v = this->getBatteryVoltage(false, false, -1, check_thoroughly);
   int voltage_p = -1;
-  if (v >= _charging_threshold) voltage_p = -1; else
+  if (v >= _charging_threshold) voltage_p = -1; else {
     voltage_p = round((min(v,_fully_charged_voltage)-_fully_uncharged_voltage)*100/(_fully_charged_voltage-_fully_uncharged_voltage));
+  }
   if(!no_update) _last_battery_voltage_percentage = voltage_p;
   return voltage_p;
 }
@@ -145,6 +198,7 @@ bool CSWBattery::checkIfEmpty() {
 
 void CSWBattery::resetBattery() {
   batteryCf = defaultBatteryCf;
+  this->setBatteryIsCalibrated(false);
 }
 
 void CSWBattery::calibrateBattery(int precision) {
