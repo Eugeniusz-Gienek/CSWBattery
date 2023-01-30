@@ -18,7 +18,7 @@ class CSWBattery {
     CSWBattery(int battery_pin=-100, int precision=-100);
     void setBatteryPin(int battery_pin);
     int getBatteryPin();
-    float getBatteryVoltage(bool no_update=false, bool get_raw=false, int override_precision=-1, bool check_thoroughly=false);
+    float getBatteryVoltage(bool no_update=false, bool get_raw=false, int override_precision=-1, bool check_thoroughly=false, bool use_default_cf=false, int override_num_checks_thoroughly=-1);
     int getVoltagePrecision();
     void setVoltagePrecision(int precision=-1);
     int getBatteryVoltageSection(bool no_update=false, bool check_thoroughly=false);
@@ -35,8 +35,8 @@ class CSWBattery {
     int getLastBatteryVoltageSection(void);
     void setLastBatteryVoltagePercentage(int s);
     int getLastBatteryVoltagePercentage(void);
-    void setBatterryCoefficient(float c);
-    float getBatterryCoefficient(void);
+    void setBatteryCoefficient(float c);
+    float getBatteryCoefficient(bool get_default=false);
     bool checkBatteryVoltageChanged(int check_type=1);
     void calibrateBattery(int precision=1);
     void resetBattery();
@@ -44,13 +44,18 @@ class CSWBattery {
     int getCalibrationIterations();
     void setBatteryIsCalibrated(bool cs=true);
     bool getBatteryIsCalibrated();
-  private:
+    void setDebugLevel(int d=1);
+    int getDebugLevel(void);
+    void setDebug(bool d);
+    void enableDebug(void);
+    void disableDebug(void);
+  protected:
     const float _fully_charged_voltage=4.2;
     const float _fully_uncharged_voltage=3.7;
     const float _charging_threshold=4.3;
     const float defaultBatteryCf=1.1;
-    const int _battery_check_times = 5;
-    const int _battery_check_delay_ms = 20;
+    int _battery_check_times = 5;
+    int _battery_check_delay_ms = 20;
     float _last_battery_voltage=-1;
     int _last_battery_voltage_section=-1;
     int _last_battery_voltage_percentage=-1;
@@ -60,7 +65,10 @@ class CSWBattery {
     unsigned long _last_check_tm=0;
     float batteryCf=1.1;
     float batteryVCalibrationDiffThreshold=0.3;
+    int batteryCalibrationDelayMS = 750;
     int _calibrationIterations = 10;
     bool _calibrationStatus=false;
+    bool DEBUG = false;
+    int DEBUG_LEVEL = 1;
 };
 #endif

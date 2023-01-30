@@ -31,8 +31,8 @@ setLastBatteryVoltageSection	KEYWORD2
 getLastBatteryVoltageSection	KEYWORD2
 setLastBatteryVoltagePercentage	KEYWORD2
 getLastBatteryVoltagePercentage	KEYWORD2
-setBatterryCoefficient	KEYWORD2
-setBatterryCoefficient	KEYWORD2
+setBatteryCoefficient	KEYWORD2
+setBatteryCoefficient	KEYWORD2
 checkBatteryVoltageChanged	KEYWORD2
 calibrateBattery	KEYWORD2
 resetBattery	KEYWORD2
