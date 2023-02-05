@@ -1,6 +1,6 @@
 {
   "name": "CSWBattery",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "keywords": "CSW,SmartWatch,Battery",
   "description": "The library for the diy smartwatch projects, which operates with their batteries.",
   "repository":
@@ -17,5 +17,5 @@
     }
   ],
   "frameworks": "arduino",
-  "platforms": "esp32"
+  "platforms": "*"
 }
